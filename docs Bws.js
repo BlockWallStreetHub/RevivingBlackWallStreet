@@ -5,11 +5,12 @@ window.DOCS = [
   {
     "addedAt": "2026-10-22T16:00:00.000Z",
     "folder": "b4of/gov/articles",
-    "kind": "link",
+    "kind": "file",
     "note": "Adds charitable purposes, dissolution clause and no-members article. Attorney review before filing.",
     "title": "Articles of Amendment (draft)",
-    "url": "https://claude.ai/artifact/7YzfoPnF34NqtcEmcHtz2u",
-    "id": "seed-articles"
+    "url": "docs/Articles_of_Amendment_Draft.pdf",
+    "id": "seed-articles",
+    "ext": "pdf"
   },
   {
     "addedAt": "2026-10-22T19:50:00.000Z",
@@ -26,74 +27,82 @@ window.DOCS = [
   {
     "addedAt": "2026-10-22T16:00:00.000Z",
     "folder": "b4of/gov/bylaws",
-    "kind": "link",
+    "kind": "file",
     "note": "3 to 9 directors, majority independent, no voting members.",
     "title": "Bylaws (restated draft)",
-    "url": "https://claude.ai/artifact/TNjy5pWK2W6UQQfRozb3hM",
-    "id": "seed-bylaws"
+    "url": "docs/Bylaws_Draft.pdf",
+    "id": "seed-bylaws",
+    "ext": "pdf"
   },
   {
     "addedAt": "2026-10-22T16:00:00.000Z",
     "folder": "b4of/gov/policies",
-    "kind": "link",
+    "kind": "file",
     "note": "Includes the annual disclosure statement.",
     "title": "Conflict of Interest Policy",
-    "url": "https://claude.ai/artifact/DMvS1Gqtzo1BqPLp6aEkL4",
-    "id": "seed-coi"
+    "url": "docs/Conflict_of_Interest_Policy.pdf",
+    "id": "seed-coi",
+    "ext": "pdf"
   },
   {
     "addedAt": "2026-10-22T16:00:00.000Z",
     "folder": "b4of/gov/meetings",
-    "kind": "link",
+    "kind": "file",
     "note": "Agenda and 12 resolutions. Fill the blanks and sign.",
     "title": "Organizational Board Meeting packet",
-    "url": "https://claude.ai/artifact/KAHNzCLCNh7o1Z7Ydqyftc",
-    "id": "seed-orgmeeting"
+    "url": "docs/Organizational_Board_Meeting_Packet.pdf",
+    "id": "seed-orgmeeting",
+    "ext": "pdf"
   },
   {
     "addedAt": "2026-10-22T16:00:00.000Z",
     "folder": "b4of/board",
-    "kind": "link",
+    "kind": "file",
     "note": "For new directors.",
     "title": "Board Orientation Guide",
-    "url": "https://claude.ai/artifact/W81ZrzBF6UqqSRprWtUYWU",
-    "id": "seed-orientation"
+    "url": "docs/Board_Orientation_Guide.pdf",
+    "id": "seed-orientation",
+    "ext": "pdf"
   },
   {
     "addedAt": "2026-10-22T16:00:00.000Z",
     "folder": "b4of/board",
-    "kind": "link",
+    "kind": "file",
     "note": "Lean version that matches the new bylaws.",
     "title": "Position Descriptions",
-    "url": "https://claude.ai/artifact/FzgcCiWjJTQptTD3UAhDLo",
-    "id": "seed-positions"
+    "url": "docs/Position_Descriptions.pdf",
+    "id": "seed-positions",
+    "ext": "pdf"
   },
   {
     "addedAt": "2026-10-22T16:00:00.000Z",
     "folder": "b4of/programs/overview",
-    "kind": "link",
+    "kind": "file",
     "note": "$123,200 Year 1 request, 270 participants.",
     "title": "Program Overview & Funding Proposal",
-    "url": "https://claude.ai/artifact/XYsFSAztuJTNV8ghdq7zwo",
-    "id": "seed-program"
+    "url": "docs/Program_Overview_and_Funding_Proposal.pdf",
+    "id": "seed-program",
+    "ext": "pdf"
   },
   {
     "addedAt": "2026-10-22T18:30:00.000Z",
     "folder": "bws/formation",
-    "kind": "link",
+    "kind": "file",
     "note": "Illinois file #13548676, filed July 26, 2023. Series LLC.",
     "title": "Company Records: BWS and Sun School",
-    "url": "https://claude.ai/artifact/NxEzm8moyZ49qpdLDL6LqT",
-    "id": "seed-records-bws"
+    "url": "docs/Company_Records_BWS_and_Sun_School.pdf",
+    "id": "seed-records-bws",
+    "ext": "pdf"
   },
   {
     "addedAt": "2026-10-22T18:30:00.000Z",
     "folder": "sun/business",
-    "kind": "link",
+    "kind": "file",
     "note": "Illinois file #17329278, filed January 21, 2026. Fix the \"AL\" address typo.",
     "title": "Company Records: BWS and Sun School",
-    "url": "https://claude.ai/artifact/NxEzm8moyZ49qpdLDL6LqT",
-    "id": "seed-records-sun"
+    "url": "docs/Company_Records_BWS_and_Sun_School.pdf",
+    "id": "seed-records-sun",
+    "ext": "pdf"
   },
   {
     "addedAt": "2026-10-22T19:00:00.000Z",
