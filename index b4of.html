@@ -1,0 +1,635 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NBWS Initiative Hub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800&family=IBM+Plex+Mono:wght@400;500&family=Source+Sans+3:wght@400;600&display=swap">
+<style>
+/* Layout: chain-of-command strip on top, compass left, folder browser right. Greenwood palette: brick, brass, ink. */
+:root {
+  --bg: #f1f2ef;
+  --panel: #fbfbf9;
+  --fg: #151a1e;
+  --muted: #5d6670;
+  --line: #d3d6d2;
+  --brick: #9a3b28;
+  --brass: #a87b1f;
+  --on-accent: #fffdf8;
+  --ring: #e4e6e2;
+  --font-display: "Big Shoulders Display", "Arial Narrow", Impact, sans-serif;
+  --font-body: "Source Sans 3", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f1316; --panel: #171c20; --fg: #ece8df; --muted: #9aa3aa; --line: #2b3238;
+    --brick: #d9674f; --brass: #d8a94c; --on-accent: #14110a; --ring: #232a2f; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f1316; --panel: #171c20; --fg: #ece8df; --muted: #9aa3aa; --line: #2b3238;
+  --brick: #d9674f; --brass: #d8a94c; --on-accent: #14110a; --ring: #232a2f; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 16px; line-height: 1.5;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 24px 56px;
+}
+.wrap { max-width: 1120px; margin: 0 auto; display: flex; flex-direction: column; gap: 28px; }
+h1, h2, h3 { font-family: var(--font-display); font-weight: 800; letter-spacing: .01em; line-height: 1.02; margin: 0; text-wrap: balance; }
+.eyebrow { font-family: var(--font-mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+header { display: flex; flex-direction: column; gap: 8px; }
+h1 { font-size: clamp(40px, 7vw, 72px); text-transform: uppercase; }
+h1 span { color: var(--brick); }
+.sub { max-width: 62ch; color: var(--muted); margin: 0; }
+
+/* chain of command */
+.chain { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; border: 1px solid var(--line); background: var(--panel); }
+.chain li { min-width: 0; border-right: 1px solid var(--line); }
+.chain li:last-child { border-right: 0; }
+.chain button { all: unset; box-sizing: border-box; cursor: pointer; display: flex; flex-direction: column; gap: 4px; padding: 14px 16px; width: 100%; height: 100%; position: relative; }
+.chain button:hover { background: var(--ring); }
+.chain button:focus-visible { outline: 3px solid var(--brass); outline-offset: -3px; }
+.chain button[aria-current="true"] { background: var(--fg); color: var(--bg); }
+.chain .step { font-family: var(--font-mono); font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--brass); }
+.chain button[aria-current="true"] .step { color: var(--brass); }
+.chain .nm { font-family: var(--font-display); font-weight: 800; font-size: 22px; text-transform: uppercase; line-height: 1.05; }
+.chain .rl { font-size: 14px; color: var(--muted); }
+.chain button[aria-current="true"] .rl { color: inherit; opacity: .8; }
+.rule { margin: 0; font-size: 14px; color: var(--muted); max-width: 90ch; }
+.rule b { color: var(--fg); font-weight: 600; }
+
+.main { display: grid; grid-template-columns: minmax(280px, 380px) minmax(0, 1fr); gap: 28px; align-items: start; }
+.compass-col { display: flex; flex-direction: column; gap: 12px; position: sticky; top: 16px; }
+.compass { width: 100%; height: auto; max-width: 380px; }
+.compass .ringline { fill: var(--panel); stroke: var(--line); stroke-width: 1.5; }
+.compass .tick { stroke: var(--muted); stroke-width: 1; }
+.compass .tick.major { stroke: var(--fg); stroke-width: 2; }
+.compass .face { fill: none; stroke: var(--line); stroke-width: 1; }
+.compass .needle { transform-origin: 160px 160px; transition: transform .7s cubic-bezier(.3, 1.4, .5, 1); }
+.compass .needle .n { fill: var(--brick); }
+.compass .needle .s { fill: var(--muted); opacity: .55; }
+.compass .hub { fill: var(--bg); stroke: var(--fg); stroke-width: 2; }
+.compass .pt { cursor: pointer; }
+.compass .pt circle { fill: var(--panel); stroke: var(--fg); stroke-width: 2; transition: fill .2s; }
+.compass .pt text { font-family: var(--font-mono); font-size: 11px; font-weight: 500; fill: var(--fg); text-anchor: middle; dominant-baseline: central; pointer-events: none; }
+.compass .pt:hover circle { fill: var(--ring); }
+.compass .pt.on circle { fill: var(--brass); stroke: var(--brass); }
+.compass .pt.on text { fill: var(--on-accent); }
+.compass .pt:focus-visible circle { stroke: var(--brick); stroke-width: 4; }
+.compass .pt:focus { outline: none; }
+.cap { font-family: var(--font-mono); font-size: 12px; color: var(--muted); text-align: center; margin: 0; }
+
+.pane { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+.org-head { display: flex; flex-direction: column; gap: 6px; }
+.org-head h2 { font-size: clamp(32px, 5vw, 48px); text-transform: uppercase; }
+.roles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; border-top: 2px solid var(--fg); }
+.roles div { padding: 12px 14px 0 0; min-width: 0; }
+.roles dt { font-family: var(--font-mono); font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--brick); }
+.roles dd { margin: 4px 0 0; font-size: 15px; }
+.roles { margin: 0; }
+
+.crumbs { display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: center; font-family: var(--font-mono); font-size: 13px; }
+.crumbs button { all: unset; cursor: pointer; color: var(--brick); text-decoration: underline; text-underline-offset: 3px; }
+.crumbs button:focus-visible { outline: 3px solid var(--brass); outline-offset: 2px; }
+.crumbs .cur { color: var(--fg); font-weight: 500; }
+.crumbs .sep { color: var(--muted); }
+
+.folders { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+.folder { all: unset; box-sizing: border-box; cursor: pointer; display: flex; flex-direction: column; gap: 6px; padding: 14px; border: 1px solid var(--line); background: var(--panel); min-width: 0; position: relative; }
+.folder:hover { border-color: var(--fg); }
+.folder:focus-visible { outline: 3px solid var(--brass); outline-offset: 2px; }
+.folder svg { width: 34px; height: 26px; fill: var(--brass); }
+.folder .fn { font-family: var(--font-display); font-weight: 800; font-size: 22px; text-transform: uppercase; line-height: 1.05; }
+.folder .fd { font-size: 14px; color: var(--muted); }
+.folder .ct { position: absolute; top: 12px; right: 12px; font-family: var(--font-mono); font-size: 12px; background: var(--fg); color: var(--bg); padding: 1px 7px; min-width: 22px; text-align: center; }
+.folder .ct.zero { background: transparent; color: var(--muted); border: 1px solid var(--line); }
+
+.docs { border: 1px solid var(--line); background: var(--panel); }
+.docs-h { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid var(--line); }
+.docs-h h3 { font-size: 24px; text-transform: uppercase; }
+.tools { display: flex; flex-wrap: wrap; gap: 8px; }
+.btn { font: inherit; font-size: 14px; cursor: pointer; padding: 7px 14px; border: 1px solid var(--fg); background: var(--fg); color: var(--bg); }
+.btn.alt { background: transparent; color: var(--fg); }
+.btn:hover { opacity: .85; }
+.btn:focus-visible { outline: 3px solid var(--brass); outline-offset: 2px; }
+.btn[disabled] { opacity: .45; cursor: default; }
+.drop { margin: 0; padding: 22px 16px; text-align: center; color: var(--muted); border: 2px dashed transparent; }
+.docs.over { outline: 3px dashed var(--brass); outline-offset: -3px; }
+.row { display: grid; grid-template-columns: 56px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 12px 16px; border-bottom: 1px solid var(--line); }
+.row:last-of-type { border-bottom: 0; }
+.kind { font-family: var(--font-mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; text-align: center; border: 1px solid var(--brass); color: var(--brass); padding: 2px 0; }
+.row a { color: var(--fg); font-weight: 600; text-decoration: underline; text-decoration-color: var(--brick); text-underline-offset: 3px; overflow-wrap: anywhere; }
+.row a:focus-visible { outline: 3px solid var(--brass); outline-offset: 2px; }
+.note { font-size: 14px; color: var(--muted); }
+.x { all: unset; cursor: pointer; font-family: var(--font-mono); font-size: 12px; color: var(--muted); padding: 4px 8px; border: 1px solid var(--line); }
+.x:hover { color: var(--brick); border-color: var(--brick); }
+.x:focus-visible { outline: 3px solid var(--brass); outline-offset: 2px; }
+.x.sure { color: var(--on-accent); background: var(--brick); border-color: var(--brick); }
+.addlink { display: none; gap: 8px; flex-wrap: wrap; padding: 12px 16px; border-bottom: 1px solid var(--line); background: var(--bg); }
+.addlink.open { display: flex; }
+.addlink input { font: inherit; font-size: 15px; padding: 7px 10px; border: 1px solid var(--line); background: var(--panel); color: var(--fg); flex: 1 1 200px; min-width: 0; }
+.addlink input:focus-visible { outline: 3px solid var(--brass); outline-offset: 1px; }
+.msg { margin: 0; padding: 10px 16px; font-size: 14px; border-bottom: 1px solid var(--line); background: var(--ring); }
+.msg.err { color: var(--brick); }
+.msg:empty { display: none; }
+.acts { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: flex-end; }
+.stat { font: inherit; font-size: 13px; padding: 4px 8px; border: 1px solid var(--line); background: var(--panel); color: var(--fg); }
+.stat:focus-visible { outline: 3px solid var(--brass); outline-offset: 2px; }
+.sign { border: 1px solid var(--brass); background: var(--panel); padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+.sign h3 { font-size: 24px; text-transform: uppercase; }
+.sign p { margin: 0; font-size: 15px; max-width: 70ch; }
+.sign ol { margin: 0; padding-left: 20px; font-size: 15px; display: flex; flex-direction: column; gap: 4px; }
+.sign .links { display: flex; flex-wrap: wrap; gap: 8px; }
+.sign .links a { font-size: 14px; padding: 7px 14px; border: 1px solid var(--fg); color: var(--fg); text-decoration: none; }
+.sign .links a:hover { background: var(--fg); color: var(--bg); }
+.sign .links a:focus-visible { outline: 3px solid var(--brass); outline-offset: 2px; }
+footer { font-size: 13px; color: var(--muted); max-width: 80ch; }
+
+@media (max-width: 860px) {
+  .main { grid-template-columns: minmax(0, 1fr); }
+  .compass-col { position: static; align-items: center; }
+  .chain { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .chain li:nth-child(2) { border-right: 0; }
+  .chain li:nth-child(-n+2) { border-bottom: 1px solid var(--line); }
+  .roles { grid-template-columns: minmax(0, 1fr); }
+  .roles div { padding-bottom: 8px; }
+}
+@media (prefers-reduced-motion: reduce) { .compass .needle { transition: none; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <span class="eyebrow">Master folder</span>
+    <h1>New Black Wall Street <span>Initiative</span></h1>
+    <p class="sub">One plan, three organizations. Turn the compass to open a company, then move through its folders. Open a folder to see its documents.</p>
+  </header>
+
+  <section aria-label="Order of command">
+    <ol class="chain" id="chain"></ol>
+  </section>
+  <p class="rule"><b>How it trickles down.</b> The Initiative sets the mission and the order of work. Block Wall Street builds ventures and earns revenue. Sun School of Satoshi trains the people. Building 4 Our Future carries the work to the community with grants and donations. <b>Building 4 Our Future keeps its own independent board.</b> It is tied to the other two by written agreements at fair value, never by ownership or control.</p>
+
+  <div class="main">
+    <div class="compass-col">
+      <svg class="compass" id="compass" viewBox="0 0 320 320" role="group" aria-label="Compass: choose an organization"></svg>
+      <p class="cap" id="cap"></p>
+    </div>
+    <div class="pane" id="pane"></div>
+  </div>
+
+  <footer>To add a document, upload the PDF to this repository and add one entry to the DOCS list at the top of index.html.</footer>
+</div>
+
+<script>
+// To add a document: upload the PDF to the main folder, then copy one block below.
+// folder looks like bws/formation, sun/transfer/drafts, b4of/gov/bylaws. url is the exact file name (spaces written as %20).
+window.DOCS = [
+  {
+    "addedAt": "2026-10-22T16:00:00.000Z",
+    "folder": "b4of/gov/articles",
+    "kind": "file",
+    "note": "Adds charitable purposes, dissolution clause and no-members article. Attorney review before filing.",
+    "title": "Articles of Amendment (draft)",
+    "url": "Articles_of_Amendment_Draft.pdf",
+    "id": "seed-articles",
+    "ext": "pdf"
+  },
+  {
+    "addedAt": "2026-10-22T19:50:00.000Z",
+    "folder": "bws/formation",
+    "kind": "file",
+    "note": "Tawanda Jennings 51%, Dionadrea Buford 49%, both Managers. Gift of 51% from Dionadrea to Tawanda. Signers: Tawanda Jennings, Dionadrea Buford, Jamal Gordon El, Amir Hodari El (resignations).",
+    "sign": true,
+    "status": "Draft",
+    "title": "Block Wall Street LLC: Operating Agreement and Ownership Transfer",
+    "url": "BWS_Operating_Agreement_and_Transfer.pdf",
+    "id": "seed-bws-opagreement-transfer",
+    "ext": "pdf"
+  },
+  {
+    "addedAt": "2026-10-22T16:00:00.000Z",
+    "folder": "b4of/gov/bylaws",
+    "kind": "file",
+    "note": "3 to 9 directors, majority independent, no voting members.",
+    "title": "Bylaws (restated draft)",
+    "url": "Bylaws_Draft.pdf",
+    "id": "seed-bylaws",
+    "ext": "pdf"
+  },
+  {
+    "addedAt": "2026-10-22T16:00:00.000Z",
+    "folder": "b4of/gov/policies",
+    "kind": "file",
+    "note": "Includes the annual disclosure statement.",
+    "title": "Conflict of Interest Policy",
+    "url": "Conflict_of_Interest_Policy.pdf",
+    "id": "seed-coi",
+    "ext": "pdf"
+  },
+  {
+    "addedAt": "2026-10-22T16:00:00.000Z",
+    "folder": "b4of/gov/meetings",
+    "kind": "file",
+    "note": "Agenda and 12 resolutions. Fill the blanks and sign.",
+    "title": "Organizational Board Meeting packet",
+    "url": "Organizational_Board_Meeting_Packet.pdf",
+    "id": "seed-orgmeeting",
+    "ext": "pdf"
+  },
+  {
+    "addedAt": "2026-10-22T16:00:00.000Z",
+    "folder": "b4of/board",
+    "kind": "file",
+    "note": "For new directors.",
+    "title": "Board Orientation Guide",
+    "url": "Board_Orientation_Guide.pdf",
+    "id": "seed-orientation",
+    "ext": "pdf"
+  },
+  {
+    "addedAt": "2026-10-22T16:00:00.000Z",
+    "folder": "b4of/board",
+    "kind": "file",
+    "note": "Lean version that matches the new bylaws.",
+    "title": "Position Descriptions",
+    "url": "Position_Descriptions.pdf",
+    "id": "seed-positions",
+    "ext": "pdf"
+  },
+  {
+    "addedAt": "2026-10-22T16:00:00.000Z",
+    "folder": "b4of/programs/overview",
+    "kind": "file",
+    "note": "$123,200 Year 1 request, 270 participants.",
+    "title": "Program Overview & Funding Proposal",
+    "url": "Program_Overview_and_Funding_Proposal.pdf",
+    "id": "seed-program",
+    "ext": "pdf"
+  },
+  {
+    "addedAt": "2026-10-22T18:30:00.000Z",
+    "folder": "bws/formation",
+    "kind": "file",
+    "note": "Illinois file #13548676, filed July 26, 2023. Series LLC.",
+    "title": "Company Records: BWS and Sun School",
+    "url": "Company_Records_BWS_and_Sun_School.pdf",
+    "id": "seed-records-bws",
+    "ext": "pdf"
+  },
+  {
+    "addedAt": "2026-10-22T18:30:00.000Z",
+    "folder": "sun/business",
+    "kind": "file",
+    "note": "Illinois file #17329278, filed January 21, 2026. Fix the \"AL\" address typo.",
+    "title": "Company Records: BWS and Sun School",
+    "url": "Company_Records_BWS_and_Sun_School.pdf",
+    "id": "seed-records-sun",
+    "ext": "pdf"
+  },
+  {
+    "addedAt": "2026-10-22T19:00:00.000Z",
+    "folder": "sun/transfer/drafts",
+    "kind": "file",
+    "note": "Justin Allen as sole member and manager. Signer: Justin Allen.",
+    "sign": true,
+    "status": "Draft",
+    "title": "Sun School of Satoshi LLC: Operating Agreement",
+    "url": "Sun_School_Operating_Agreement%20BWS.pdf",
+    "id": "seed-sun-opagreement",
+    "ext": "pdf"
+  },
+  {
+    "addedAt": "2026-10-22T19:00:01.000Z",
+    "folder": "sun/transfer/drafts",
+    "kind": "file",
+    "note": "Assignment, resignation, release, and IP transition. Signers: Isun Jones-Boler and Justin Allen.",
+    "sign": true,
+    "status": "Draft",
+    "title": "Ownership Transfer Packet (4 parts)",
+    "url": "Sun_School_Ownership_Transfer_Packet%20Bws.pdf",
+    "id": "seed-sun-transferpacket",
+    "ext": "pdf"
+  },
+  {
+    "addedAt": "2026-10-23T16:10:00.000Z",
+    "folder": "b4of/gov/bylaws",
+    "kind": "file",
+    "note": "Oct 23 draft with a mission article. 3 to 9 directors, no voting members. Different from the Oct 22 restated draft, so compare before adopting.",
+    "title": "Bylaws (Oct 23 draft)",
+    "url": "B4OF_Bylaws.pdf",
+    "id": "seed-bylaws-oct23",
+    "ext": "pdf"
+  },
+  {
+    "addedAt": "2026-10-23T16:10:01.000Z",
+    "folder": "b4of/gov/articles",
+    "kind": "file",
+    "note": "Mission statement, purpose clause, required IRS language and dissolution clause.",
+    "title": "Mission Statement and Purpose Clause",
+    "url": "B4OF_Mission_and_Purpose.pdf",
+    "id": "seed-mission-purpose",
+    "ext": "pdf"
+  },
+  {
+    "addedAt": "2026-10-23T16:10:02.000Z",
+    "folder": "b4of/tax/irs",
+    "kind": "file",
+    "note": "Everything still missing for B4OF, with check boxes.",
+    "title": "Document Checklist",
+    "url": "B4OF_Document_Checklist.pdf",
+    "id": "seed-b4of-checklist",
+    "ext": "pdf"
+  }
+];
+</script>
+<script>
+const ORGS = {
+  initiative: { pt: "PLAN", step: "Plan", name: "New Black Wall Street Initiative",
+    role: "The plan. Sets the mission, the order of work and the agreements that connect the three organizations. It is not a legal entity.",
+    gets: "Direction from the founder.", gives: "Mission, brand, roadmap and shared agreements.",
+    folders: [
+      { id: "vision", name: "Vision & Master Plan", desc: "The big plan, goals and milestones." },
+      { id: "structure", name: "Structure & Agreements", desc: "Who does what, and the contracts between companies.", children: [
+        { id: "chart", name: "Org chart", desc: "How the three organizations connect." },
+        { id: "agreements", name: "Inter-company agreements", desc: "Licenses, MOUs and service agreements." } ] },
+      { id: "brand", name: "Brand & Story", desc: "Name, logo, voice and the Greenwood story." },
+      { id: "roadmap", name: "Roadmap", desc: "Timeline and who owns each step." } ] },
+  bws: { pt: "BWS", step: "Engine", name: "Block Wall Street LLC",
+    role: "The engine. A for-profit LLC that builds ventures and earns the revenue that keeps the plan moving.",
+    gets: "Vision and brand from the Initiative.", gives: "Fair-value licenses, sponsorships and jobs for graduates.",
+    folders: [
+      { id: "formation", name: "Formation & Legal", desc: "Operating agreement, EIN, licenses." },
+      { id: "finance", name: "Finance & Banking", desc: "Accounts, budgets, tax records." },
+      { id: "ventures", name: "Ventures & Products", desc: "What the company builds and sells." },
+      { id: "marketing", name: "Marketing & Media", desc: "Campaigns, content, press." },
+      { id: "contracts", name: "Contracts & Partners", desc: "Vendors, partners, sponsors." } ] },
+  sun: { pt: "SUN", step: "Classroom", name: "Sun School of Satoshi",
+    role: "The classroom. Its own LLC, separately owned, that teaches Bitcoin, money and business skills and turns learners into founders and talent.",
+    gets: "Terms agreed in writing with BWS and B4OF.", gives: "Trained students and founders. Curriculum B4OF can license at fair value.",
+    folders: [
+      { id: "curriculum", name: "Curriculum", desc: "Lessons, workbooks and course material.", children: [
+        { id: "courses", name: "Courses", desc: "Lesson plans and slide material." },
+        { id: "workbooks", name: "Workbooks", desc: "Student handouts and exercises." } ] },
+      { id: "students", name: "Students & Cohorts", desc: "Rosters, schedules, outcomes." },
+      { id: "business", name: "Business & Licensing", desc: "Pricing, licensing, terms." },
+      { id: "transfer", name: "Ownership Transfer", desc: "New operating agreement, assignment, and signed copies.", children: [
+        { id: "drafts", name: "Drafts to sign", desc: "Print and sign, or send for e-signature." },
+        { id: "signed", name: "Signed copies", desc: "Signed PDFs go here." } ] },
+      { id: "marketing", name: "Marketing & Content", desc: "Social, video and enrollment pages." } ] },
+  b4of: { pt: "B4OF", step: "Community", name: "Building 4 Our Future",
+    role: "The community arm. An Illinois nonprofit in formation that funds free access through grants and donations. It has no owners, its founder is Ray Robinson, and it answers to its own independent board. Tax-exempt status is not yet filed.",
+    gets: "Grants, donations and fair-value licenses.", gives: "Free programs, scholarships and community results.",
+    folders: [
+      { id: "gov", name: "Governance", desc: "Articles, bylaws, policies, board minutes.", children: [
+        { id: "articles", name: "Articles & Amendments", desc: "Filings with the Illinois Secretary of State." },
+        { id: "bylaws", name: "Bylaws", desc: "The rules the board runs by." },
+        { id: "policies", name: "Policies", desc: "Conflict of interest and others." },
+        { id: "meetings", name: "Meetings & Minutes", desc: "Agendas, resolutions, signed minutes." } ] },
+      { id: "tax", name: "Tax-Exempt & Compliance", desc: "IRS and Illinois filings.", children: [
+        { id: "irs", name: "IRS Form 1023", desc: "Application and supporting papers." },
+        { id: "state", name: "State filings", desc: "Annual report, AG registration." } ] },
+      { id: "programs", name: "Programs & Funding", desc: "What we run and what it costs.", children: [
+        { id: "overview", name: "Program overview", desc: "The funding proposal." },
+        { id: "budgets", name: "Budgets", desc: "Year 1 budget and projections." },
+        { id: "grants", name: "Grants & proposals", desc: "Applications and funder notes." } ] },
+      { id: "board", name: "Board & Staffing", desc: "Directors, positions, orientation." },
+      { id: "fundraising", name: "Fundraising & Donors", desc: "Campaigns, pledges, thank-yous." } ] }
+};
+const ORDER = ["initiative", "bws", "sun", "b4of"];
+const ANGLE = { initiative: 0, bws: 90, sun: 180, b4of: 270 };
+const COORD = { initiative: [160, 52], bws: [268, 160], sun: [160, 268], b4of: [52, 160] };
+const SVGNS = "http://www.w3.org/2000/svg";
+
+let org = "initiative", path = [], items = [], dbRef = null, assetsApi = null, dbReady = false, canWrite = true, note = "", armed = null;
+
+function h(tag, attrs, kids) {
+  const e = document.createElement(tag);
+  for (const k in (attrs || {})) {
+    if (k === "text") e.textContent = attrs[k];
+    else if (k === "class") e.className = attrs[k];
+    else if (k.startsWith("on")) e.addEventListener(k.slice(2), attrs[k]);
+    else if (attrs[k] !== false && attrs[k] != null) e.setAttribute(k, attrs[k]);
+  }
+  (kids || []).forEach(c => c && e.appendChild(typeof c === "string" ? document.createTextNode(c) : c));
+  return e;
+}
+function s(tag, attrs, kids) {
+  const e = document.createElementNS(SVGNS, tag);
+  for (const k in (attrs || {})) e.setAttribute(k, attrs[k]);
+  (kids || []).forEach(c => e.appendChild(c));
+  return e;
+}
+function folderAt(o, p) {
+  let list = ORGS[o].folders, f = null;
+  for (const id of p) { f = list.find(x => x.id === id); if (!f) return null; list = f.children || []; }
+  return f;
+}
+const keyOf = (o, p) => [o].concat(p).join("/");
+function countUnder(key) { return items.filter(i => i.folder === key || (i.folder || "").startsWith(key + "/")).length; }
+
+function readHash() {
+  const t = (location.hash || "").replace("#", "");
+  if (ORGS[t]) org = t;
+}
+function go(o, p) {
+  org = o; path = p || []; note = ""; armed = null;
+  try { history.replaceState(null, "", "#" + o); } catch (e) {}
+  render();
+}
+
+function buildChain() {
+  const ol = document.getElementById("chain"); ol.textContent = "";
+  ORDER.forEach((id, i) => {
+    const o = ORGS[id];
+    const b = h("button", { type: "button", onclick: () => go(id, []), "aria-current": id === org ? "true" : "false" }, [
+      h("span", { class: "step", text: (i + 1) + " · " + o.step }),
+      h("span", { class: "nm", text: o.name }),
+    ]);
+    ol.appendChild(h("li", {}, [b]));
+  });
+}
+
+function buildCompass() {
+  const svg = document.getElementById("compass"); svg.textContent = "";
+  svg.appendChild(s("circle", { cx: 160, cy: 160, r: 154, class: "ringline" }));
+  svg.appendChild(s("circle", { cx: 160, cy: 160, r: 82, class: "face" }));
+  for (let i = 0; i < 72; i++) {
+    const a = i * 5 * Math.PI / 180, major = i % 18 === 0, mid = i % 9 === 0;
+    const r1 = 154, r2 = major ? 138 : (mid ? 144 : 148);
+    svg.appendChild(s("line", { class: "tick" + (major ? " major" : ""), x1: 160 + r1 * Math.sin(a), y1: 160 - r1 * Math.cos(a), x2: 160 + r2 * Math.sin(a), y2: 160 - r2 * Math.cos(a) }));
+  }
+  const needle = s("g", { class: "needle", id: "needle" }, [
+    s("polygon", { class: "n", points: "160,76 171,160 149,160" }),
+    s("polygon", { class: "s", points: "160,244 171,160 149,160" })
+  ]);
+  svg.appendChild(needle);
+  svg.appendChild(s("circle", { class: "hub", cx: 160, cy: 160, r: 9 }));
+  ORDER.forEach(id => {
+    const [x, y] = COORD[id];
+    const g = s("g", { class: "pt", id: "pt-" + id, tabindex: 0, role: "button", "aria-label": ORGS[id].name });
+    g.appendChild(s("circle", { cx: x, cy: y, r: 25 }));
+    const t = s("text", { x: x, y: y }); t.textContent = ORGS[id].pt; g.appendChild(t);
+    g.addEventListener("click", () => go(id, []));
+    g.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(id, []); } });
+    svg.appendChild(g);
+  });
+}
+function updateCompass() {
+  const n = document.getElementById("needle");
+  if (n) n.style.transform = "rotate(" + ANGLE[org] + "deg)";
+  ORDER.forEach(id => { const g = document.getElementById("pt-" + id); if (g) g.classList.toggle("on", id === org); });
+  document.getElementById("cap").textContent = ORGS[org].name;
+}
+
+const FOLDER_ICON = () => { const v = s("svg", { viewBox: "0 0 34 26", "aria-hidden": "true" }); v.appendChild(s("path", { d: "M0 3a3 3 0 0 1 3-3h9l4 4h15a3 3 0 0 1 3 3v16a3 3 0 0 1-3 3H3a3 3 0 0 1-3-3z" })); return v; };
+
+function renderPane() {
+  const pane = document.getElementById("pane"); pane.textContent = "";
+  const o = ORGS[org];
+  pane.appendChild(h("div", { class: "org-head" }, [
+    h("span", { class: "eyebrow", text: (ORDER.indexOf(org) + 1) + " of 4 · " + o.step }),
+    h("h2", { text: o.name })
+  ]));
+  pane.appendChild(h("dl", { class: "roles" }, [
+    h("div", {}, [h("dt", { text: "Role" }), h("dd", { text: o.role })]),
+    h("div", {}, [h("dt", { text: "Receives" }), h("dd", { text: o.gets })]),
+    h("div", {}, [h("dt", { text: "Gives" }), h("dd", { text: o.gives })])
+  ]));
+
+  // breadcrumbs
+  const crumbs = h("nav", { class: "crumbs", "aria-label": "Folder path" });
+  const addCrumb = (label, p, last) => {
+    if (crumbs.childNodes.length) crumbs.appendChild(h("span", { class: "sep", text: "/" }));
+    crumbs.appendChild(last ? h("span", { class: "cur", text: label }) : h("button", { type: "button", text: label, onclick: () => go(org, p) }));
+  };
+  addCrumb(o.step === "Plan" ? "Initiative" : o.pt, [], path.length === 0);
+  let acc = [];
+  path.forEach((id, i) => { acc = acc.concat(id); const f = folderAt(org, acc); addCrumb(f ? f.name : id, acc.slice(), i === path.length - 1); });
+  pane.appendChild(crumbs);
+
+  // subfolders
+  const cur = path.length ? folderAt(org, path) : { children: o.folders };
+  const subs = (cur && cur.children) || [];
+  if (subs.length) {
+    const grid = h("div", { class: "folders" });
+    subs.forEach(f => {
+      const c = countUnder(keyOf(org, path.concat(f.id)));
+      const b = h("button", { type: "button", class: "folder", onclick: () => go(org, path.concat(f.id)) }, [
+        FOLDER_ICON(),
+        h("span", { class: "fn", text: f.name }),
+        h("span", { class: "fd", text: f.desc }),
+        h("span", { class: "ct" + (c ? "" : " zero"), text: String(c), title: c + " documents inside", "aria-label": c + " documents inside" })
+      ]);
+      grid.appendChild(b);
+    });
+    pane.appendChild(grid);
+  }
+
+  if (org === "sun" && path[0] === "transfer") pane.appendChild(signPanel());
+
+  // documents
+  const key = keyOf(org, path);
+  const here = items.filter(i => i.folder === key).sort((a, b) => (b.addedAt || "").localeCompare(a.addedAt || ""));
+  const title = path.length ? (folderAt(org, path) || {}).name : "Loose in this section";
+  const box = h("div", { class: "docs", id: "docs" });
+  box.appendChild(h("div", { class: "docs-h" }, [h("h3", { text: title + " · " + here.length })]));
+  if (!dbReady) box.appendChild(h("p", { class: "drop", text: dbRef === null && dbReady === false && window.__dbChecked ? "Sign in to see and add documents." : "Loading documents…" }));
+  else if (!here.length) box.appendChild(h("p", { class: "drop", text: "Nothing here yet." }));
+  here.forEach(it => {
+    const href = it.url;
+    const isArmed = armed === it.id;
+    const row = h("div", { class: "row" }, [
+      h("span", { class: "kind", text: it.kind === "file" ? (it.ext || "file") : "link" }),
+      h("div", {}, [h("a", { href: href, target: "_blank", rel: "noopener noreferrer", text: it.title }), it.note ? h("div", { class: "note", text: it.note }) : null]),
+      h("div", { class: "acts" }, [
+        it.sign ? h("span", { class: "stat", text: it.status || "Draft" }) : null
+      ])
+    ]);
+    box.appendChild(row);
+  });
+  pane.appendChild(box);
+}
+
+function statusSel(it) {
+  if (!it.sign) return null;
+  const sel = h("select", { class: "stat", "aria-label": "Signing status for " + it.title, onchange: e => setStatus(it, e.target.value), disabled: canWrite ? false : "disabled" });
+  ["Draft", "Sent for signature", "Signed"].forEach(v => { const o = h("option", { value: v, text: v }); if ((it.status || "Draft") === v) o.selected = true; sel.appendChild(o); });
+  return sel;
+}
+async function setStatus(it, v) {
+  try { await dbRef.doc(it.id).update({ status: v }); setNote(it.title + ": " + v); }
+  catch (e) { setNote("!Could not save the status. Try again."); }
+}
+function signPanel() {
+  const link = (href, t) => h("a", { href: href, target: "_blank", rel: "noopener noreferrer", text: t });
+  return h("section", { class: "sign", "aria-label": "Signing options" }, [
+    h("h3", { text: "Sign these papers" }),
+    h("p", { text: "Option 1: print each document and sign in ink. Option 2: sign electronically. Electronic signatures are valid in Illinois when each person agrees to sign that way and the signing service keeps a record of who signed and when." }),
+    h("ol", {}, [
+      h("li", { text: "Open the document and export it as a PDF from its menu." }),
+      h("li", { text: "Upload the PDF to a signing service, add each signer's email, and place their signature lines." }),
+      h("li", { text: "When everyone has signed, upload the signed PDF to this repository and change its status in index.html to Signed." })
+    ]),
+    h("div", { class: "links" }, [
+      link("https://www.docusign.com/", "DocuSign"),
+      link("https://sign.dropbox.com/", "Dropbox Sign"),
+      link("https://www.adobe.com/acrobat/sign.html", "Adobe Acrobat Sign")
+    ])
+  ]);
+}
+
+function setNote(t) { note = t; const m = document.getElementById("msg"); if (m) { m.textContent = t.replace(/^!/, ""); m.className = "msg" + (t.startsWith("!") ? " err" : ""); } }
+
+const EXT_TYPE = { pdf: "application/pdf", png: "image/png", jpg: "image/jpeg", jpeg: "image/jpeg", gif: "image/gif", webp: "image/webp", svg: "image/svg+xml", mp4: "video/mp4", webm: "video/webm", csv: "text/csv", md: "text/markdown", json: "application/json", txt: "text/plain" };
+async function uploadFiles(files) {
+  if (!files.length || !assetsApi || !dbRef) return;
+  const key = keyOf(org, path);
+  for (const f of files) {
+    const ext = (f.name.split(".").pop() || "").toLowerCase();
+    setNote("Uploading " + f.name + "…");
+    try {
+      const type = EXT_TYPE[ext];
+      if (!type) throw { code: "unsupported_type" };
+      const r = await assetsApi.upload(f, { type });
+      await dbRef.add({ folder: key, kind: "file", title: f.name.replace(/\.[^.]+$/, ""), ext: ext, assetId: r.id, size: r.sizeBytes, addedAt: new Date().toISOString() });
+      setNote("Added " + f.name);
+    } catch (e) {
+      const c = e && e.code;
+      setNote("!" + (c === "unsupported_type" ? f.name + " can't be stored here. Word, Excel and PowerPoint files need to be exported as PDF, or added as a link." : c === "too_large" ? f.name + " is over the 20 MB limit." : c === "quota_or_state" ? "Storage is full. Remove files you no longer need." : "Could not add " + f.name + ". Try again."));
+      return;
+    }
+  }
+}
+async function addLink(title, url) {
+  title = (title || "").trim(); url = (url || "").trim();
+  if (!title || !/^https:\/\//i.test(url)) { setNote("!Enter a title and a link that starts with https://"); return; }
+  try {
+    await dbRef.add({ folder: keyOf(org, path), kind: "link", title: title, url: url, addedAt: new Date().toISOString() });
+    document.getElementById("lk-title").value = ""; document.getElementById("lk-url").value = "";
+    document.getElementById("addlink").classList.remove("open");
+    setNote("Link added");
+  } catch (e) { setNote("!Could not save the link. Try again."); }
+}
+async function removeItem(it) {
+  if (armed !== it.id) { armed = it.id; renderPane(); return; }
+  armed = null;
+  try {
+    await dbRef.doc(it.id).delete();
+    if (it.kind === "file" && assetsApi && it.assetId) { try { await assetsApi.delete(it.assetId); } catch (e) {} }
+    setNote("Removed " + it.title);
+  } catch (e) { setNote("!Could not remove it. Try again."); }
+}
+
+function render() { buildChain(); updateCompass(); renderPane(); }
+
+buildCompass(); readHash(); render();
+window.addEventListener("hashchange", () => { const prev = org; readHash(); if (org !== prev) { path = []; render(); } });
+
+items = window.DOCS || [];
+dbReady = true; canWrite = false;
+render();
+</script>
+</body></html>
